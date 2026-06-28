@@ -36,6 +36,7 @@
   .toast.show{transform:translateX(-50%) translateY(0)}
   .toast.ok{background:var(--verde)} .toast.err{background:var(--vermelho)}
   .hint{color:#AFC4F0;font-size:12px;text-align:center;margin-top:14px}
+  .sync-info{color:#AFC4F0;font-size:11px;text-align:center;margin-top:6px}
 </style>
 </head>
 <body>
@@ -115,43 +116,68 @@
       <button id="btn">Adicionar lançamento</button>
     </div>
     <div class="hint">Os lançamentos entram na sua planilha quando você tocar em "Sincronizar" no Excel.</div>
+    <div class="sync-info" id="syncInfo"></div>
   </div>
   <div class="toast" id="toast"></div>
 
 <script>
-  // ====== CONFIGURE AQUI (1 linha) ======
+  // ====== CONFIGURE AQUI ======
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEtmEH4MMdUjvGTK7e6J_Q297wRSlhHj9byteeOMNBcFwpiAK94DnNgHTSt9W1zqUc/exec";
-  const TOKEN = "3380";
-  // ======================================
+  const TOKEN      = "3380";
+  // ============================
 
-  const $ = id => document.getElementById(id);
+  const $id = id => document.getElementById(id);
+  const toast = (msg, tipo) => {
+    const t = $id('toast'); t.textContent = msg;
+    t.className = 'toast show ' + (tipo||'');
+    setTimeout(() => t.className = 'toast ' + (tipo||''), 2600);
+  };
+  const parseValor = s => { s=(s||'').trim().replace(/\./g,'').replace(',','.'); const v=parseFloat(s); return isNaN(v)?0:v; };
+
   // data padrao = hoje
-  (function(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $('data').value=d.toISOString().slice(0,10); })();
+  (()=>{ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $id('data').value=d.toISOString().slice(0,10); })();
 
-  function toast(msg, tipo){ const t=$('toast'); t.textContent=msg; t.className='toast show '+(tipo||'');
-    setTimeout(()=>t.className='toast '+(tipo||''), 2600); }
+  // ---- carrega descricoes do servidor (atualiza o datalist dinamicamente) ----
+  async function carregarDescricoes() {
+    try {
+      const r = await fetch(SCRIPT_URL + '?token=' + TOKEN + '&tipo=descricoes', {redirect:'follow'});
+      const txt = await r.text();
+      if (!txt || txt.startsWith('ERRO')) return; // usa as embutidas no HTML
+      const lista = txt.split('\n').map(s=>s.trim()).filter(Boolean);
+      if (!lista.length) return;
+      const dl = $id('descricoes');
+      dl.innerHTML = lista.map(d => `<option value="${d.replace(/"/g,'&quot;')}">`).join('\n');
+      $id('syncInfo').textContent = 'Descrições atualizadas (' + lista.length + ')';
+    } catch(e) {
+      // silencioso — usa as descrições embutidas
+    }
+  }
+  carregarDescricoes();
 
-  function parseValor(s){ s=(s||'').trim().replace(/\./g,'').replace(',','.'); const v=parseFloat(s); return isNaN(v)?0:v; }
+  $id('valor').addEventListener('input', () => {
+    const v = parseValor($id('valor').value);
+    $id('prev').textContent = v > 0 ? 'Valor: R$ ' + v.toLocaleString('pt-BR',{minimumFractionDigits:2}) : '';
+  });
 
-  $('valor').addEventListener('input',()=>{ const v=parseValor($('valor').value);
-    $('prev').textContent = v>0 ? ('Valor: R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2})) : ''; });
+  $id('btn').addEventListener('click', async () => {
+    const data=$id('data').value, desc=$id('desc').value.trim(), valor=parseValor($id('valor').value);
+    if (!data)   { toast('Escolha a data','err'); return; }
+    if (!desc)   { toast('Digite a descrição','err'); return; }
+    if (valor<=0){ toast('Digite um valor válido','err'); return; }
 
-  $('btn').addEventListener('click', async ()=>{
-    const data=$('data').value, desc=$('desc').value.trim(), valor=parseValor($('valor').value);
-    if(!data){ toast('Escolha a data','err'); return; }
-    if(!desc){ toast('Digite a descrição','err'); return; }
-    if(valor<=0){ toast('Digite um valor válido','err'); return; }
-
-    $('btn').disabled=true; $('btn').textContent='Enviando...';
-    try{
-      await fetch(SCRIPT_URL,{ method:'POST', redirect:'follow',
-        headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({token:TOKEN, data:data, descricao:desc, valor:valor}) });
-      toast('✓ Lançado: '+desc,'ok');
-      $('desc').value=''; $('valor').value=''; $('prev').textContent=''; $('desc').focus();
-    }catch(err){
+    $id('btn').disabled = true; $id('btn').textContent = 'Enviando...';
+    try {
+      await fetch(SCRIPT_URL, { method:'POST', redirect:'follow',
+        headers: {'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({token:TOKEN, data:data, descricao:desc, valor:valor})
+      });
+      toast('\u2713 Lançado: ' + desc, 'ok');
+      $id('desc').value=''; $id('valor').value=''; $id('prev').textContent=''; $id('desc').focus();
+    } catch(err) {
       toast('Erro de conexão. Tente de novo.','err');
-    }finally{ $('btn').disabled=false; $('btn').textContent='Adicionar lançamento'; }
+    } finally {
+      $id('btn').disabled = false; $id('btn').textContent = 'Adicionar lançamento';
+    }
   });
 </script>
 </body>
