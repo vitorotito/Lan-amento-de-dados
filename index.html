@@ -267,7 +267,7 @@
   </div>
   <div class="card">
     <label>Data</label>
-    <input type="date" id="data">
+    <input type="date" id="data" autocomplete="off">
 
     <label>Descrição</label>
     <div class="desc-wrap">
@@ -472,7 +472,7 @@ function formatarValor(c){
 
 // cria input invisivel para capturar teclado no celular
 const valorAux = document.createElement('input');
-valorAux.type = 'number'; valorAux.pattern = '[0-9]*'; valorAux.inputMode = 'numeric';
+valorAux.type = 'text'; valorAux.pattern = '[0-9]*'; valorAux.inputMode = 'numeric';
 valorAux.style.cssText = 'position:absolute;opacity:0;width:1px;height:1px;top:-9999px;left:-9999px';
 document.body.appendChild(valorAux);
 
@@ -503,6 +503,7 @@ valorAux.addEventListener('input', ()=>{
 });
 
 valorEl.addEventListener('click', ()=>{
+  // apenas foca o teclado; NAO zera o valor ja digitado
   valorAux.focus();
   valorEl.classList.add('ativo');
 });
@@ -533,10 +534,10 @@ $id('btn').addEventListener('click', async ()=>{
   const desc  = descVal.value.trim();
   const valor = centavos / 100;
 
-  if(!data){ 
-    toast('Escolha a data','err'); 
+  if(!data){
+    toast('Escolha a data','err');
     triggerBounce($id('data'), 'bounce-pop');
-    return; 
+    return;
   }
   if(!desc){
     if(searchEl.value.trim()){
@@ -544,14 +545,14 @@ $id('btn').addEventListener('click', async ()=>{
       descHint.className='desc-hint err';
       descHint.textContent='Selecione uma opção da lista';
     }
-    toast('Selecione uma descrição da lista','err'); 
+    toast('Selecione uma descrição da lista','err');
     triggerBounce(searchEl, 'bounce-pop');
     return;
   }
-  if(valor<=0){ 
-    toast('Digite um valor válido','err'); 
+  if(valor<=0){
+    toast('Digite um valor válido','err');
     animarDigitacaoValor();
-    return; 
+    return;
   }
 
   $id('btn').disabled=true; $id('btn').textContent='Enviando...';
@@ -616,6 +617,12 @@ function renderHistorico(){
     '</div>'
   ).join('');
 }
+function limparHistorico(){
+  if(!confirm('Limpar todo o histórico local?')) return;
+  try{ localStorage.removeItem(HKEY); }catch(e){}
+  renderHistorico();
+  toast('Histórico limpo','ok');
+}
 (function initHistorico(){
   renderHistorico();
   const box = $id('histBox');
@@ -624,12 +631,6 @@ function renderHistorico(){
   const clr = $id('histClear');
   if(clr) clr.addEventListener('click', limparHistorico);
 })();
-function limparHistorico(){
-  if(!confirm('Limpar todo o histórico local?')) return;
-  try{ localStorage.removeItem(HKEY); }catch(e){}
-  renderHistorico();
-  toast('Histórico limpo','ok');
-}
 </script>
 </body>
 </html>
