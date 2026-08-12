@@ -1,0 +1,17 @@
+{
+  "name": "Novo Lançamento",
+  "short_name": "Lançar",
+  "description": "Aplicativo para lançamento financeiro",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#16357A",
+  "theme_color": "#16357A",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%2316357A'/><circle cx='256' cy='256' r='160' fill='%2316823C'/><text x='256' y='325' font-size='220' font-weight='bold' fill='white' text-anchor='middle' font-family='sans-serif'>$</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
