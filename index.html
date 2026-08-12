@@ -154,6 +154,21 @@ const descHint = $id('descHint');
 let dropAberto = false;
 let touchMoving = false;
 
+// ---- Funcao para sincronizar as cores do input e do botao X ----
+function setDescState(state){
+  const clr = $id('descClear');
+  if(state === 'ok'){
+    searchEl.className = 'ok';
+    clr.className = 'desc-clear clear-ok';
+  } else if(state === 'err'){
+    searchEl.className = 'err';
+    clr.className = 'desc-clear clear-err';
+  } else {
+    searchEl.className = '';
+    clr.className = 'desc-clear';
+  }
+}
+
 function normaliza(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
 function hl(txt,q){
   if(!q) return txt;
@@ -187,14 +202,14 @@ function fecharDrop(){ dropEl.classList.remove('open'); dropAberto=false; }
 
 function selecionarItem(v){
   searchEl.value=v; descVal.value=v;
-  searchEl.className='ok';
+  setDescState('ok');
   descHint.className='desc-hint ok'; descHint.textContent='✓ Cadastrada';
   fecharDrop();
 }
 
 function limparDesc(){
   searchEl.value=''; descVal.value='';
-  searchEl.className='';
+  setDescState('');
   descHint.className='desc-hint info'; descHint.textContent='Digite para buscar';
   fecharDrop(); searchEl.focus();
 }
@@ -205,7 +220,8 @@ window.addEventListener('resize', ()=>{ if(dropAberto) posicionarDrop(); });
 
 searchEl.addEventListener('focus',()=>abrirDrop(searchEl.value));
 searchEl.addEventListener('input',()=>{
-  descVal.value=''; searchEl.className='';
+  descVal.value=''; 
+  setDescState('');
   descHint.className='desc-hint info'; descHint.textContent='';
   abrirDrop(searchEl.value);
 });
@@ -322,7 +338,7 @@ $id('btn').addEventListener('click', async ()=>{
   if(!data){ toast('Escolha a data','err'); return; }
   if(!desc){
     if(searchEl.value.trim()){
-      searchEl.className='err';
+      setDescState('err');
       descHint.className='desc-hint err';
       descHint.textContent='Selecione uma opção da lista';
     }
