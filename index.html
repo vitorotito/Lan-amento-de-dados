@@ -1,534 +1,132 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0F2A63">
-<title>Lançar</title>
-<link rel="manifest" href="/manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<style>
-  :root{
-    --azul:#2563B9; --azul-esc:#1C4E96; --bg:#0F2A63; --bg2:#16357A;
-    --verde:#16A34A; --verde-esc:#0F7B37;
-    --vermelho:#DC2626;
-    --card:#ffffff; --borda:#D7DEE9; --borda-soft:#E8EDF5;
-    --txt:#1A2230; --txt2:#6B7686; --txt3:#9AA4B2;
-    --field:#FBFCFE;
-    --r-card:20px; --r-field:13px; --r-pill:30px;
-    --shadow-card:0 18px 48px -12px rgba(8,20,50,0.45), 0 4px 14px -4px rgba(8,20,50,0.25);
-    --shadow-btn:0 10px 26px -6px rgba(37,99,185,0.55), 0 4px 10px -4px rgba(37,99,185,0.4);
-  }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%}
-  body{
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
-    background:
-      radial-gradient(120% 80% at 50% -10%, #1E4A9C 0%, var(--bg2) 45%, var(--bg) 100%);
-    min-height:100vh;padding:20px 18px 32px;color:var(--txt);
-    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-  }
-  .wrap{max-width:440px;margin:0 auto}
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
+import AuthLayout from "@/components/AuthLayout";
+import GoogleIcon from "@/components/GoogleIcon";
+import { safeReturnTo } from "@/lib/authReturnTo";
 
-  /* ---- header ---- */
-  .head{display:flex;align-items:center;gap:12px;color:#fff;margin:4px 2px 18px}
-  .logo{
-    width:38px;height:38px;
-    background:linear-gradient(145deg, var(--verde) 0%, var(--verde-esc) 100%);
-    border-radius:11px;display:flex;align-items:center;justify-content:center;
-    font-weight:800;font-size:20px;color:#fff;letter-spacing:-.5px;
-    box-shadow:0 6px 16px rgba(22,163,74,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
-    transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    user-select:none;cursor:pointer;
-  }
-  .logo:hover, .logo.bounce{ animation: logoBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  @keyframes logoBounce {
-    0% { transform: scale(1) rotate(0deg); }
-    30% { transform: scale(1.25) rotate(-10deg); }
-    60% { transform: scale(0.9) rotate(5deg); }
-    80% { transform: scale(1.1) rotate(-2deg); }
-    100% { transform: scale(1) rotate(0deg); }
-  }
-  .head h1{font-size:20px;font-weight:600;letter-spacing:-.2px}
-  .head .sub{font-size:12px;font-weight:400;color:#AFC4F0;margin-top:1px}
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  // Post-login destination (e.g. the MCP OAuth consent page sends users here
+  // with returnTo so the grant flow can resume). Same-origin paths only.
+  const returnTo = safeReturnTo();
 
-  /* ---- card ---- */
-  .card{
-    background:var(--card);border-radius:var(--r-card);padding:22px 20px 20px;
-    box-shadow:var(--shadow-card);
-    position:relative;overflow:hidden;
-    animation: cardEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-  .card::before{
-    content:'';position:absolute;inset:0 0 auto 0;height:4px;
-    background:linear-gradient(90deg, var(--azul) 0%, var(--verde) 100%);
-    opacity:.9;
-  }
-  @keyframes cardEntrance {
-    0% { opacity: 0; transform: translateY(18px) scale(0.97); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await base44.auth.loginViaEmailPassword(email, password);
+      window.location.href = returnTo;
+    } catch (err) {
+      setError(err.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  label{
-    display:block;font-size:12.5px;font-weight:600;color:var(--txt2);
-    margin:18px 2px 7px;letter-spacing:.2px;text-transform:uppercase;
-  }
-  label:first-child{margin-top:0}
+  const handleGoogle = () => {
+    base44.auth.loginWithProvider("google", returnTo);
+  };
 
-  /* ---- data ---- */
-  input[type=date]{
-    width:100%;height:52px;border:1.5px solid var(--borda);border-radius:var(--r-field);
-    padding:0 14px;font-size:17px;font-family:inherit;color:var(--txt);
-    background:var(--field);outline:none;appearance:none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  }
-  input[type=date]:focus{border-color:var(--azul);box-shadow:0 0 0 4px rgba(37,99,185,0.14);background:#fff}
+  return (
+    <AuthLayout
+      icon={LogIn}
+      title="Welcome back"
+      subtitle="Log in to your account"
+      footer={
+        <>
+          Don't have an account?{" "}
+          <Link
+            to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")}
+            className="text-primary font-medium hover:underline"
+          >
+            Create one
+          </Link>
+        </>
+      }
+    >
+      <Button
+        variant="outline"
+        className="w-full h-12 text-sm font-medium mb-6"
+        onClick={handleGoogle}
+      >
+        <GoogleIcon className="w-5 h-5 mr-2" />
+        Continue with Google
+      </Button>
 
-  /* ---- descricao ---- */
-  .desc-wrap{position:relative}
-  .desc-row{
-    display:flex;align-items:center;width:100%;height:52px;
-    border:1.5px solid var(--borda);border-radius:var(--r-field);
-    background:var(--field);box-sizing:border-box;overflow:hidden;
-    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  }
-  .desc-row:focus-within{border-color:var(--azul) !important;box-shadow:0 0 0 4px rgba(37,99,185,0.12);background:#fff}
-  .desc-row.state-ok{border-color:var(--verde) !important;background:#F0FAF4 !important}
-  .desc-row.state-err{border-color:var(--vermelho) !important;background:#FEF0F0 !important}
-  #descSearch{
-    flex:1;min-width:0;height:100%;border:none !important;border-radius:0 !important;
-    padding:0 14px;font-size:17px;font-family:inherit;color:var(--txt);
-    background:transparent !important;outline:none;appearance:none;box-shadow:none !important;
-  }
-  #descSearch::placeholder{color:var(--txt3)}
-  .desc-clear{
-    width:46px;height:100%;border:none !important;background:transparent !important;
-    color:var(--txt3);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;user-select:none;
-  }
-  .desc-row.state-ok .desc-clear{color:var(--verde)}
-  .desc-row.state-err .desc-clear{color:var(--vermelho)}
-  #descClearIcon{
-    display:inline-flex;align-items:center;justify-content:center;
-    width:22px;height:22px;line-height:1;
-    transition:transform 0.2s ease, color 0.2s ease;pointer-events:none;
-  }
-  .desc-clear:hover #descClearIcon{transform:rotate(90deg);color:var(--azul)}
-  .desc-clear:active #descClearIcon{transform:rotate(180deg) scale(0.9)}
-  .desc-hint{font-size:11.5px;margin:6px 2px 0;min-height:0;height:15px;line-height:15px;font-weight:500;overflow:hidden;transition:color 0.2s ease}
-  .desc-hint.ok{color:var(--verde)} .desc-hint.err{color:var(--vermelho)} .desc-hint.info{color:var(--txt3)}
-
-  /* ---- dropdown ---- */
-  .drop{
-    position:absolute;top:54px;left:0;width:100%;background:#fff;
-    border:1.5px solid var(--azul);border-radius:var(--r-field);
-    box-shadow:0 16px 40px -8px rgba(22,53,122,0.28), 0 4px 12px -4px rgba(22,53,122,0.18);
-    max-height:248px;overflow-y:auto;-webkit-overflow-scrolling:touch;
-    z-index:9999;display:none;box-sizing:border-box;
-  }
-  .drop.open{display:block}
-  .drop-spring{ animation: dropSmooth 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  @keyframes dropSmooth {
-    0% { opacity: 0; transform: translateY(-6px); }
-    100% { opacity: 1; transform: translateY(0); }
-  }
-  .drop-item{
-    padding:15px 16px;font-size:16px;border-bottom:1px solid #F0F3F8;
-    cursor:pointer;user-select:none;-webkit-user-select:none;
-    transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease;
-  }
-  .drop-item:last-child{border-bottom:none}
-  .drop-item:hover, .drop-item.active{background:#F0F6FF;color:var(--azul);padding-left:20px}
-  .drop-item:active{background:var(--azul);color:#fff}
-  .drop-item em{font-style:normal;font-weight:700}
-  .drop-empty{padding:18px;color:var(--txt3);font-size:14px;text-align:center}
-
-  /* ---- valor ---- */
-  .moeda{position:relative}
-  .moeda span{
-    position:absolute;left:16px;top:50%;transform:translateY(-50%);
-    color:var(--txt2);font-size:17px;font-weight:700;
-    z-index:10;pointer-events:none;transition:color 0.2s ease;
-  }
-  .moeda input{
-    width:100%;height:58px;border:1.5px solid var(--borda);border-radius:var(--r-field);
-    padding:0 16px 0 46px;font-size:24px;font-family:inherit;color:var(--txt);
-    background:var(--field);outline:none;appearance:none;letter-spacing:.5px;
-    position:relative;z-index:1;font-weight:600;
-    transition:border-color .2s,background .2s,color .2s,box-shadow .2s,transform .15s ease;
-  }
-  .moeda input:focus{border-color:var(--azul);box-shadow:0 0 0 4px rgba(37,99,185,0.14);background:#fff}
-  .moeda input.ativo{border-color:var(--azul);background:#F0F6FF}
-  .moeda input::placeholder{color:var(--txt3);font-weight:500}
-
-  @keyframes bouncePop { 0%{transform:scale(1)} 50%{transform:scale(1.02)} 100%{transform:scale(1)} }
-  .bounce-pop{ animation: bouncePop 0.18s ease-out; }
-  @keyframes symbolBounce {
-    0% { transform: translateY(-50%) scale(1); }
-    50% { transform: translateY(-50%) scale(1.22); color: var(--azul); }
-    100% { transform: translateY(-50%) scale(1); }
-  }
-  .symbol-bounce{ animation: symbolBounce 0.2s ease-out; }
-  @keyframes clearSpin {
-    0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.2) rotate(180deg); color: var(--vermelho); }
-    100% { transform: scale(1) rotate(360deg); }
-  }
-  .clear-icon-spin{ animation: clearSpin 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
-
-  /* ---- botao ---- */
-  button{
-    width:100%;height:56px;border:none;border-radius:14px;
-    background:linear-gradient(135deg, var(--azul) 0%, var(--azul-esc) 100%);
-    color:#fff;font-size:17px;font-weight:600;font-family:inherit;
-    margin-top:22px;cursor:pointer;position:relative;overflow:hidden;
-    box-shadow:var(--shadow-btn);letter-spacing:.2px;
-    transition:transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, opacity 0.2s;
-    -webkit-tap-highlight-color:transparent;
-  }
-  button:hover{transform:translateY(-2px) scale(1.01);box-shadow:0 14px 32px -6px rgba(37,99,185,0.6), 0 6px 14px -4px rgba(37,99,185,0.45)}
-  button:active{transform:translateY(1px) scale(0.97);box-shadow:0 4px 12px -4px rgba(37,99,185,0.4)}
-  button:disabled{opacity:.6;transform:none;box-shadow:none;cursor:not-allowed}
-
-  span.ripple{
-    position:absolute;border-radius:50%;transform:scale(0);
-    animation: rippleEffect 0.55s linear;background-color:rgba(255,255,255,0.35);pointer-events:none;
-  }
-  @keyframes rippleEffect { to { transform: scale(4); opacity: 0; } }
-
-  /* ---- toast ---- */
-  .toast{
-    position:fixed;left:50%;bottom:28px;
-    transform:translateX(-50%) translateY(120px) scale(0.85);opacity:0;
-    background:#1A2230;color:#fff;padding:14px 24px;border-radius:var(--r-pill);
-    font-size:14.5px;font-weight:500;box-shadow:0 12px 32px rgba(0,0,0,.35);
-    max-width:88%;text-align:center;z-index:99999;pointer-events:none;
-    transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
-  }
-  .toast.show{
-    transform:translateX(-50%) translateY(0) scale(1);opacity:1;
-    animation: toastBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-  @keyframes toastBounce {
-    0% { transform: translateX(-50%) translateY(60px) scale(0.75); opacity: 0; }
-    65% { transform: translateX(-50%) translateY(-8px) scale(1.04); opacity: 1; }
-    85% { transform: translateX(-50%) translateY(2px) scale(0.98); opacity: 1; }
-    100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
-  }
-  .toast.ok{background:linear-gradient(135deg, var(--verde) 0%, var(--verde-esc) 100%)}
-  .toast.err{background:linear-gradient(135deg, var(--vermelho) 0%, #B91C1C 100%)}
-
-  /* ---- hints ---- */
-  .hint{color:#AFC4F0;font-size:12px;text-align:center;margin-top:16px;line-height:1.5}
-  .sync-info{color:#AFC4F0;font-size:11px;text-align:center;margin-top:5px;font-weight:500}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div class="head">
-    <div class="logo">$</div>
-    <div>
-      <h1>Novo Lançamento</h1>
-      <div class="sub">Toque para lançar na planilha</div>
-    </div>
-  </div>
-  <div class="card">
-    <label>Data</label>
-    <input type="date" id="data">
-
-    <label>Descrição</label>
-    <div class="desc-wrap">
-      <div class="desc-row">
-        <input type="text" id="descSearch" placeholder="Buscar descrição..."
-               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <div class="desc-clear" id="descClear"><span id="descClearIcon">&#x2715;</span></div>
+      <div className="relative mb-6">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-border" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-card px-3 text-muted-foreground">or</span>
+        </div>
       </div>
-      <div class="drop" id="drop"></div>
-      <div class="desc-hint info" id="descHint">Digite para buscar</div>
-    </div>
-    <input type="hidden" id="descVal">
 
-    <label>Valor</label>
-    <div class="moeda">
-      <span id="moedaSymbol">R$</span>
-      <input type="text" id="valor" inputmode="numeric" placeholder="0,00" readonly>
-    </div>
+      {error && (
+        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          {error}
+        </div>
+      )}
 
-    <button id="btn">Adicionar lançamento</button>
-  </div>
-  <div class="hint">Os lançamentos entram na planilha quando você tocar em "Sincronizar" no Excel.</div>
-  <div class="sync-info" id="syncInfo"></div>
-</div>
-<div class="toast" id="toast"></div>
-
-<script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyEtmEH4MMdUjvGTK7e6J_Q297wRSlhHj9byteeOMNBcFwpiAK94DnNgHTSt9W1zqUc/exec";
-const TOKEN      = "3380";
-
-let LISTA = ["Acessório", "Ajuda de custo", "Almoço", "Aluguel", "Assinaturas", "Ações", "Besteiras", "Cabelo", "Café da manhã", "Casa", "Churrasco", "Combustivel", "Compra Mercado Livre", "Cursos", "Dividendos", "Dizimo", "Dízimo", "Eletrônicos", "Estacionamento", "Eventos", "Extorno", "Extra", "FII´s", "Facul", "Farmácia", "Fatura", "Hora Extra", "Jogos", "Juros", "Kart", "Lanche", "Lavação", "Luz", "Manut. Carro", "Mecânico", "Mercado", "Microsoft One Drive", "Outros", "Pag. Cartão crédito", "Pc", "Pedágio", "Perfume", "Peças carro", "Pizza", "Projetos", "RU", "Renda Extra", "Renda Fixa", "Restaurante", "Retiro", "Roupa", "Saldo Inicial", "Salário", "Saída", "Softwares", "Sorvete", "Tênis", "Venda", "Venda de ação", "Volêi", "Água"];
-
-const $id = id => document.getElementById(id);
-
-// ---- Desregistrar Service Worker em desenvolvimento para evitar cache antigo ----
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    for(let r of regs) r.unregister();
-  }).catch(()=>{});
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10 h-12"
+              required
+            />
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10 h-12"
+              required
+            />
+          </div>
+        </div>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Logging in...
+            </>
+          ) : (
+            "Log in"
+          )}
+        </Button>
+      </form>
+    </AuthLayout>
+  );
 }
-
-// ---- Funcao para sincronizar as cores do input e do botao X ----
-function setDescState(state){
-  const row = document.querySelector('.desc-row');
-  if(!row) return;
-  if(state === 'ok'){
-    row.className = 'desc-row state-ok';
-  } else if(state === 'err'){
-    row.className = 'desc-row state-err';
-  } else {
-    row.className = 'desc-row';
-  }
-}
-
-function normaliza(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
-function hl(txt,q){
-  if(!q) return txt;
-  const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
-  return txt.replace(re,'<em>$1</em>');
-}
-
-function posicionarDrop(){
-  dropEl.style.left = '';
-  dropEl.style.top = '';
-  dropEl.style.width = '';
-}
-
-function abrirDrop(q){
-  const nq=normaliza(q);
-  const fil=nq ? LISTA.filter(d=>normaliza(d).includes(nq)) : LISTA;
-  if(!fil.length){
-    dropEl.innerHTML='<div class="drop-empty">Nenhuma descrição encontrada</div>';
-  } else {
-    dropEl.innerHTML=fil.slice(0,40).map(d=>
-      '<div class="drop-item" data-v="'+d.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">'+hl(d,q)+'</div>'
-    ).join('');
-  }
-  posicionarDrop();
-  if(!dropAberto){
-    triggerBounce(dropEl, 'drop-spring');
-  }
-  dropEl.classList.add('open');
-  dropAberto=true;
-}
-
-function selecionarDesc(v){
-  searchEl.value=v; descVal.value=v;
-  setDescState('ok');
-  descHint.className='desc-hint ok'; descHint.textContent='✓ Cadastrada';
-  fecharDrop();
-}
-
-function limparDesc(){
-  searchEl.value=''; descVal.value='';
-  setDescState('');
-  descHint.className='desc-hint info'; descHint.textContent='Digite para buscar';
-  triggerBounce($id('descClearIcon'), 'clear-icon-spin');
-  fecharDrop(); searchEl.focus();
-}
-
-function fecharDrop(){
-  dropEl.classList.remove('open');
-  dropAberto=false;
-}
-
-const searchEl = $id('descSearch');
-const dropEl   = $id('drop');
-const descVal  = $id('descVal');
-const descHint = $id('descHint');
-let dropAberto = false;
-let touchMoving = false;
-
-// ---- data padrao = hoje ----
-(()=>{ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $id('data').value=d.toISOString().slice(0,10); })();
-
-// ---- busca descricoes no servidor ----
-async function carregarDescricoes(){
-  try{
-    const r=await fetch(SCRIPT_URL+'?token='+TOKEN+'&tipo=descricoes',{redirect:'follow'});
-    const txt=await r.text();
-    if(!txt||txt.startsWith('ERRO')) return;
-    const nova=txt.split('\n').map(s=>s.trim()).filter(Boolean);
-    if(nova.length){ LISTA=nova; $id('syncInfo').textContent='Descrições atualizadas ('+nova.length+')'; }
-  }catch(e){}
-}
-carregarDescricoes();
-
-// ---- helper de animacao bounce/pop ----
-function triggerBounce(el, className = 'bounce-pop') {
-  if(!el) return;
-  el.classList.remove(className);
-  void el.offsetWidth; // forcar reflow
-  el.classList.add(className);
-}
-
-// Logo clicável com bounce
-const logoEl = document.querySelector('.logo');
-if(logoEl){
-  logoEl.addEventListener('click', () => triggerBounce(logoEl, 'bounce'));
-}
-
-searchEl.addEventListener('input', e=>{
-  const q=e.target.value.trim();
-  if(descVal.value && q!==descVal.value){ descVal.value=''; setDescState(''); descHint.className='desc-hint info'; descHint.textContent='Digite para buscar'; }
-  abrirDrop(q);
-});
-
-searchEl.addEventListener('focus', ()=> abrirDrop(searchEl.value.trim()));
-$id('descClear').addEventListener('click', limparDesc);
-
-// ---- cliques no dropdown ----
-dropEl.addEventListener('touchstart', ()=> touchMoving=false);
-dropEl.addEventListener('touchmove', ()=> touchMoving=true);
-dropEl.addEventListener('click', e=>{
-  if(touchMoving) return;
-  const item = e.target.closest('.drop-item');
-  if(item && item.dataset.v) selecionarDesc(item.dataset.v);
-});
-
-// fechar ao clicar fora
-document.addEventListener('click', e=>{
-  if(!e.target.closest('.desc-wrap') && !e.target.closest('#drop')) fecharDrop();
-});
-
-// ---- teclado virtual para valor ----
-let centavos = 0;
-const valorEl = $id('valor');
-
-function animarDigitacaoValor() {
-  triggerBounce(valorEl, 'bounce-pop');
-  triggerBounce($id('moedaSymbol'), 'symbol-bounce');
-}
-
-function formatarValor(c){
-  const s = String(c).padStart(3,'0');
-  const reais = s.slice(0,-2).replace(/^0+/,'')||'0';
-  const cent  = s.slice(-2);
-  return reais.replace(/\B(?=(\d{3})+(?!\d))/g,'.') + ',' + cent;
-}
-
-// cria input invisivel para capturar teclado no celular
-const valorAux = document.createElement('input');
-valorAux.type = 'number'; valorAux.pattern = '[0-9]*'; valorAux.inputMode = 'numeric';
-valorAux.style.cssText = 'position:absolute;opacity:0;width:1px;height:1px;top:-9999px;left:-9999px';
-document.body.appendChild(valorAux);
-
-valorAux.addEventListener('keydown', e=>{
-  if(e.key>='0' && e.key<='9'){
-    if(centavos < 9999999) centavos = centavos*10 + parseInt(e.key);
-    valorEl.value = formatarValor(centavos);
-    animarDigitacaoValor();
-  } else if(e.key==='Backspace'){
-    centavos = Math.floor(centavos/10);
-    valorEl.value = formatarValor(centavos);
-    animarDigitacaoValor();
-  }
-  e.preventDefault();
-});
-
-valorAux.addEventListener('input', e=>{
-  // capturar no Android
-  const val = valorAux.value;
-  if(val){
-    const ultimoChar = val.slice(-1);
-    if(ultimoChar >= '0' && ultimoChar <= '9'){
-      if(centavos < 9999999) centavos = centavos*10 + parseInt(ultimoChar);
-      valorEl.value = formatarValor(centavos);
-      animarDigitacaoValor();
-    }
-    valorAux.value = '';
-  }
-});
-
-valorEl.addEventListener('click', ()=>{
-  centavos=0; 
-  valorEl.value='0,00'; 
-  valorAux.focus(); 
-  valorEl.classList.add('ativo'); 
-  animarDigitacaoValor();
-});
-valorEl.addEventListener('focus', ()=>{ valorAux.focus(); valorEl.classList.add('ativo'); });
-valorAux.addEventListener('blur', ()=>{ valorEl.classList.remove('ativo'); });
-
-// ================================================================
-//  ENVIAR E RIPPLE EFFECT
-// ================================================================
-$id('btn').addEventListener('click', function(e) {
-  // Ripple
-  const btn = this;
-  const circle = document.createElement('span');
-  const diameter = Math.max(btn.clientWidth, btn.clientHeight);
-  const radius = diameter / 2;
-  const rect = btn.getBoundingClientRect();
-  circle.style.width = circle.style.height = `${diameter}px`;
-  circle.style.left = `${e.clientX - rect.left - radius}px`;
-  circle.style.top = `${e.clientY - rect.top - radius}px`;
-  circle.classList.add('ripple');
-  const prevRipple = btn.querySelector('.ripple');
-  if (prevRipple) prevRipple.remove();
-  btn.appendChild(circle);
-});
-
-$id('btn').addEventListener('click', async ()=>{
-  const data  = $id('data').value;
-  const desc  = descVal.value.trim();
-  const valor = centavos / 100;
-
-  if(!data){ 
-    toast('Escolha a data','err'); 
-    triggerBounce($id('data'), 'bounce-pop');
-    return; 
-  }
-  if(!desc){
-    if(searchEl.value.trim()){
-      setDescState('err');
-      descHint.className='desc-hint err';
-      descHint.textContent='Selecione uma opção da lista';
-    }
-    toast('Selecione uma descrição da lista','err'); 
-    triggerBounce(searchEl, 'bounce-pop');
-    return;
-  }
-  if(valor<=0){ 
-    toast('Digite um valor válido','err'); 
-    animarDigitacaoValor();
-    return; 
-  }
-
-  $id('btn').disabled=true; $id('btn').textContent='Enviando...';
-  try{
-    const r = await fetch(SCRIPT_URL, {
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({token:TOKEN,data:data,descricao:desc,valor:valor})
-    });
-    toast('\u2713 Lançado: '+desc,'ok');
-    if(logoEl) triggerBounce(logoEl, 'bounce');
-    limparDesc();
-    centavos=0; valorEl.value='0,00'; valorEl.classList.remove('ativo');
-    searchEl.focus();
-  }catch(e){
-    toast('Erro de rede: '+e.message,'err');
-  }finally{
-    $id('btn').disabled=false; $id('btn').textContent='Adicionar lançamento';
-  }
-});
-
-// toast
-const toast = (msg, tipo) => {
-  const t=$id('toast'); t.textContent=msg;
-  t.className='toast show '+(tipo||'');
-  setTimeout(()=>t.className='toast '+(tipo||''), 2800);
-};
-</script>
-</body>
-</html>
