@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#16357A">
 <title>Lançar</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <style>
   :root{ --azul:#2563B9; --azul-esc:#1C4E96; --bg:#16357A; --verde:#16823C; --vermelho:#C13131;
          --card:#fff; --borda:#D7DEE9; --txt:#26303D; --txt2:#6B7686; }
@@ -48,22 +51,57 @@
 
   /* ---- campo busca descricao ---- */
   .desc-wrap{position:relative}
-  .desc-row{display:flex;width:100%}
-  #descSearch{flex:1;min-width:0;height:50px;border:1.5px solid var(--borda);border-radius:11px 0 0 11px;
-        border-right:none;padding:0 14px;font-size:17px;font-family:inherit;
-        color:var(--txt);background:#fff;outline:none;appearance:none;
-        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;}
-  #descSearch:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(37,99,185,0.12)}
-  #descSearch.ok{border-color:var(--verde);background:#F0FAF4}
-  #descSearch.err{border-color:var(--vermelho);background:#FEF0F0}
-  .desc-clear{width:46px;height:50px;border:1.5px solid var(--borda);border-left:none;
-        border-radius:0 11px 11px 0;background:#F7F9FC;color:var(--txt2);font-size:20px;
-        cursor:pointer;display:flex;align-items:center;justify-content:center;
-        flex-shrink:0;user-select:none;
-        transition:background .2s,border-color .2s,color .2s,transform .2s cubic-bezier(0.34, 1.56, 0.64, 1)}
-  .desc-clear:active{transform:scale(0.82) rotate(-20deg);}
-  .desc-row.state-ok .desc-clear,#descClear.clear-ok{border-color:var(--verde) !important;background:#E6F7ED !important;color:var(--verde) !important}
-  .desc-row.state-err .desc-clear,#descClear.clear-err{border-color:var(--vermelho) !important;background:#FEF0F0 !important;color:var(--vermelho) !important}
+  .desc-row{
+    display:flex;
+    align-items:center;
+    width:100%;
+    height:50px;
+    border:1.5px solid var(--borda);
+    border-radius:11px;
+    background:#fff;
+    box-sizing:border-box;
+    overflow:hidden;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+  .desc-row:focus-within{
+    border-color:var(--azul) !important;
+    box-shadow:0 0 0 3px rgba(37,99,185,0.12);
+  }
+  .desc-row.state-ok{
+    border-color:var(--verde) !important;
+    background:#F0FAF4 !important;
+  }
+  .desc-row.state-err{
+    border-color:var(--vermelho) !important;
+    background:#FEF0F0 !important;
+  }
+  
+  #descSearch{
+    flex:1;min-width:0;height:100%;
+    border:none !important;border-radius:0 !important;
+    padding:0 14px;font-size:17px;font-family:inherit;
+    color:var(--txt);background:transparent !important;
+    outline:none;appearance:none;box-shadow:none !important;
+  }
+  
+  .desc-clear{
+    width:44px;height:100%;
+    border:none !important;background:transparent !important;
+    color:var(--txt2);font-size:18px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;user-select:none;
+  }
+  .desc-row.state-ok .desc-clear{color:var(--verde)}
+  .desc-row.state-err .desc-clear{color:var(--vermelho)}
+  
+  #descClearIcon{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:22px;height:22px;line-height:1;
+    transition:transform 0.2s ease, color 0.2s ease;pointer-events:none;
+  }
+  .desc-clear:hover #descClearIcon{transform:rotate(90deg);color:var(--azul)}
+  .desc-clear:active #descClearIcon{transform:rotate(180deg) scale(0.9)}
+  
   .desc-hint{font-size:11px;margin:3px 2px 0;min-height:0;height:14px;line-height:14px;font-weight:500;overflow:hidden;transition:color 0.2s ease}
   .desc-hint.ok{color:var(--verde)} .desc-hint.err{color:var(--vermelho)} .desc-hint.info{color:var(--txt2)}
 
@@ -125,11 +163,11 @@
 
   @keyframes clearSpin {
     0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.25) rotate(180deg); color: var(--vermelho); }
+    50% { transform: scale(1.2) rotate(180deg); color: var(--vermelho); }
     100% { transform: scale(1) rotate(360deg); }
   }
-  .clear-spin {
-    animation: clearSpin 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  .clear-icon-spin {
+    animation: clearSpin 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   /* Botao interativo */
@@ -193,7 +231,7 @@
       <div class="desc-row">
         <input type="text" id="descSearch" placeholder="Buscar descrição..."
                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-        <div class="desc-clear" id="descClear">&#x2715;</div>
+        <div class="desc-clear" id="descClear"><span id="descClearIcon">&#x2715;</span></div>
       </div>
       <div class="drop" id="drop"></div>
       <div class="desc-hint info" id="descHint">Digite para buscar</div>
@@ -221,64 +259,23 @@ let LISTA = ["Acessório", "Ajuda de custo", "Almoço", "Aluguel", "Assinaturas"
 
 const $id = id => document.getElementById(id);
 
-// ---- helper de animacao bounce/pop ----
-function triggerBounce(el, className = 'bounce-pop') {
-  if(!el) return;
-  el.classList.remove(className);
-  void el.offsetWidth; // forcar reflow
-  el.classList.add(className);
+// ---- Desregistrar Service Worker em desenvolvimento para evitar cache antigo ----
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    for(let r of regs) r.unregister();
+  }).catch(()=>{});
 }
-
-// Logo clicável com bounce
-const logoEl = document.querySelector('.logo');
-if(logoEl){
-  logoEl.addEventListener('click', () => triggerBounce(logoEl, 'bounce'));
-}
-
-// ---- toast ----
-const toast = (msg, tipo) => {
-  const t=$id('toast'); t.textContent=msg;
-  t.className='toast show '+(tipo||'');
-  setTimeout(()=>t.className='toast '+(tipo||''), 2800);
-};
-
-// ---- data padrao = hoje ----
-(()=>{ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $id('data').value=d.toISOString().slice(0,10); })();
-
-// ---- busca descricoes no servidor ----
-async function carregarDescricoes(){
-  try{
-    const r=await fetch(SCRIPT_URL+'?token='+TOKEN+'&tipo=descricoes',{redirect:'follow'});
-    const txt=await r.text();
-    if(!txt||txt.startsWith('ERRO')) return;
-    const nova=txt.split('\n').map(s=>s.trim()).filter(Boolean);
-    if(nova.length){ LISTA=nova; $id('syncInfo').textContent='Descrições atualizadas ('+nova.length+')'; }
-  }catch(e){}
-}
-carregarDescricoes();
-
-// ================================================================
-//  CAMPO DE BUSCA COM DROPDOWN FIXO (nao treme ao rolar)
-// ================================================================
-const searchEl = $id('descSearch');
-const dropEl   = $id('drop');
-const descVal  = $id('descVal');
-const descHint = $id('descHint');
-let dropAberto = false;
-let touchMoving = false;
 
 // ---- Funcao para sincronizar as cores do input e do botao X ----
 function setDescState(state){
-  const clr = $id('descClear');
+  const row = document.querySelector('.desc-row');
+  if(!row) return;
   if(state === 'ok'){
-    searchEl.className = 'ok';
-    clr.className = 'desc-clear clear-ok';
+    row.className = 'desc-row state-ok';
   } else if(state === 'err'){
-    searchEl.className = 'err';
-    clr.className = 'desc-clear clear-err';
+    row.className = 'desc-row state-err';
   } else {
-    searchEl.className = '';
-    clr.className = 'desc-clear';
+    row.className = 'desc-row';
   }
 }
 
@@ -313,14 +310,10 @@ function abrirDrop(q){
   dropAberto=true;
 }
 
-function fecharDrop(){ dropEl.classList.remove('open'); dropAberto=false; }
-
-function selecionarItem(v){
+function selecionarDesc(v){
   searchEl.value=v; descVal.value=v;
   setDescState('ok');
   descHint.className='desc-hint ok'; descHint.textContent='✓ Cadastrada';
-  triggerBounce(searchEl, 'bounce-pop');
-  triggerBounce($id('descClear'), 'bounce-pop');
   fecharDrop();
 }
 
@@ -328,72 +321,75 @@ function limparDesc(){
   searchEl.value=''; descVal.value='';
   setDescState('');
   descHint.className='desc-hint info'; descHint.textContent='Digite para buscar';
-  triggerBounce($id('descClear'), 'clear-spin');
+  triggerBounce($id('descClearIcon'), 'clear-icon-spin');
   fecharDrop(); searchEl.focus();
 }
 
-// reposiciona o drop se a pagina rolar (sem fechar)
-window.addEventListener('scroll', ()=>{ if(dropAberto) posicionarDrop(); }, {passive:true});
-window.addEventListener('resize', ()=>{ if(dropAberto) posicionarDrop(); });
+function fecharDrop(){
+  dropEl.classList.remove('open');
+  dropAberto=false;
+}
 
-searchEl.addEventListener('focus',()=>abrirDrop(searchEl.value));
-searchEl.addEventListener('input',()=>{
-  descVal.value=''; 
-  setDescState('');
-  descHint.className='desc-hint info'; descHint.textContent='';
-  abrirDrop(searchEl.value);
-});
-searchEl.addEventListener('blur',()=>{
-  // pequeno delay para o touchstart do item disparar antes
-  setTimeout(()=>{
-    fecharDrop();
-    if(searchEl.value && !descVal.value){
-      const match=LISTA.find(d=>d.toLowerCase()===searchEl.value.toLowerCase());
-      if(match){ selecionarItem(match); }
-      else{
-        setDescState('err');
-        descHint.className='desc-hint err';
-        descHint.textContent='Não cadastrada — use "Nova Categoria" no Excel';
-      }
-    }
-  }, 200);
-});
+const searchEl = $id('descSearch');
+const dropEl   = $id('drop');
+const descVal  = $id('descVal');
+const descHint = $id('descHint');
+let dropAberto = false;
+let touchMoving = false;
 
-// delegar eventos nos itens do drop
-dropEl.addEventListener('touchstart', e=>{
-  touchMoving=false;
-  const item=e.target.closest('.drop-item');
-  if(item) item.classList.add('active');
-}, {passive:true});
+// ---- data padrao = hoje ----
+(()=>{ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); $id('data').value=d.toISOString().slice(0,10); })();
 
-dropEl.addEventListener('touchmove', e=>{
-  touchMoving=true;
-  // remove highlight se comecar a rolar
-  dropEl.querySelectorAll('.drop-item.active').forEach(el=>el.classList.remove('active'));
-}, {passive:true});
+// ---- busca descricoes no servidor ----
+async function carregarDescricoes(){
+  try{
+    const r=await fetch(SCRIPT_URL+'?token='+TOKEN+'&tipo=descricoes',{redirect:'follow'});
+    const txt=await r.text();
+    if(!txt||txt.startsWith('ERRO')) return;
+    const nova=txt.split('\n').map(s=>s.trim()).filter(Boolean);
+    if(nova.length){ LISTA=nova; $id('syncInfo').textContent='Descrições atualizadas ('+nova.length+')'; }
+  }catch(e){}
+}
+carregarDescricoes();
 
-dropEl.addEventListener('touchend', e=>{
-  if(touchMoving) return; // estava rolando, nao seleciona
-  const item=e.target.closest('.drop-item');
-  if(item && item.dataset.v){ e.preventDefault(); selecionarItem(item.dataset.v); }
-}, {passive:false});
+// ---- helper de animacao bounce/pop ----
+function triggerBounce(el, className = 'bounce-pop') {
+  if(!el) return;
+  el.classList.remove(className);
+  void el.offsetWidth; // forcar reflow
+  el.classList.add(className);
+}
 
-dropEl.addEventListener('mousedown', e=>{
-  const item=e.target.closest('.drop-item');
-  if(item && item.dataset.v){ e.preventDefault(); selecionarItem(item.dataset.v); }
+// Logo clicável com bounce
+const logoEl = document.querySelector('.logo');
+if(logoEl){
+  logoEl.addEventListener('click', () => triggerBounce(logoEl, 'bounce'));
+}
+
+searchEl.addEventListener('input', e=>{
+  const q=e.target.value.trim();
+  if(descVal.value && q!==descVal.value){ descVal.value=''; setDescState(''); descHint.className='desc-hint info'; descHint.textContent='Digite para buscar'; }
+  abrirDrop(q);
 });
 
-$id('descClear').addEventListener('touchstart', e=>{ e.preventDefault(); limparDesc(); },{passive:false});
+searchEl.addEventListener('focus', ()=> abrirDrop(searchEl.value.trim()));
 $id('descClear').addEventListener('click', limparDesc);
 
-document.addEventListener('touchstart', e=>{
-  if(!searchEl.contains(e.target) && !dropEl.contains(e.target) && !$id('descClear').contains(e.target))
-    fecharDrop();
-},{passive:true});
+// ---- cliques no dropdown ----
+dropEl.addEventListener('touchstart', ()=> touchMoving=false);
+dropEl.addEventListener('touchmove', ()=> touchMoving=true);
+dropEl.addEventListener('click', e=>{
+  if(touchMoving) return;
+  const item = e.target.closest('.drop-item');
+  if(item && item.dataset.v) selecionarDesc(item.dataset.v);
+});
 
-// ================================================================
-//  CAMPO VALOR ESTILO BANCO
-// ================================================================
+// fechar ao clicar fora
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.desc-wrap') && !e.target.closest('#drop')) fecharDrop();
+});
+
+// ---- teclado virtual para valor ----
 let centavos = 0;
 const valorEl = $id('valor');
 
@@ -405,15 +401,17 @@ function animarDigitacaoValor() {
 function formatarValor(c){
   const s = String(c).padStart(3,'0');
   const reais = s.slice(0,-2).replace(/^0+/,'')||'0';
-  const cents = s.slice(-2);
-  // separador de milhar
-  const r = reais.replace(/\B(?=(\d{3})+(?!\d))/g,'.');
-  return r+','+cents;
+  const cent  = s.slice(-2);
+  return reais.replace(/\B(?=(\d{3})+(?!\d))/g,'.') + ',' + cent;
 }
 
-// teclado numerico — captura toques
-document.addEventListener('keydown', e=>{
-  if(document.activeElement !== valorEl) return;
+// cria input invisivel para capturar teclado no celular
+const valorAux = document.createElement('input');
+valorAux.type = 'number'; valorAux.pattern = '[0-9]*'; valorAux.inputMode = 'numeric';
+valorAux.style.cssText = 'position:absolute;opacity:0;width:1px;height:1px;top:-9999px;left:-9999px';
+document.body.appendChild(valorAux);
+
+valorAux.addEventListener('keydown', e=>{
   if(e.key>='0' && e.key<='9'){
     if(centavos < 9999999) centavos = centavos*10 + parseInt(e.key);
     valorEl.value = formatarValor(centavos);
@@ -426,45 +424,29 @@ document.addEventListener('keydown', e=>{
   e.preventDefault();
 });
 
-// no celular o input e readonly entao abrimos o teclado com um campo auxiliar oculto
-const valorAux = document.createElement('input');
-valorAux.type='tel'; valorAux.style.cssText='position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;';
-document.body.appendChild(valorAux);
+valorAux.addEventListener('input', e=>{
+  // capturar no Android
+  const val = valorAux.value;
+  if(val){
+    const ultimoChar = val.slice(-1);
+    if(ultimoChar >= '0' && ultimoChar <= '9'){
+      if(centavos < 9999999) centavos = centavos*10 + parseInt(ultimoChar);
+      valorEl.value = formatarValor(centavos);
+      animarDigitacaoValor();
+    }
+    valorAux.value = '';
+  }
+});
 
-function atualizarEstadoValor(){
-  valorEl.classList.add('ativo');
-}
-valorEl.addEventListener('click',()=>{ 
+valorEl.addEventListener('click', ()=>{
   centavos=0; 
   valorEl.value='0,00'; 
   valorAux.focus(); 
   valorEl.classList.add('ativo'); 
   animarDigitacaoValor();
 });
-valorEl.addEventListener('focus',()=>{ valorAux.focus(); valorEl.classList.add('ativo'); });
-valorAux.addEventListener('blur',()=>{ valorEl.classList.remove('ativo'); });
-
-valorAux.addEventListener('input', e=>{
-  // pega so os digitos digitados
-  const digitos=(valorAux.value||'').replace(/\D/g,'');
-  if(digitos.length > 0){
-    for(const d of digitos){
-      if(centavos < 9999999) centavos = centavos*10 + parseInt(d);
-    }
-    valorEl.value=formatarValor(centavos);
-    atualizarEstadoValor();
-    animarDigitacaoValor();
-  }
-  valorAux.value='';
-});
-valorAux.addEventListener('keydown',e=>{
-  if(e.key==='Backspace'){ 
-    centavos=Math.floor(centavos/10); 
-    valorEl.value=formatarValor(centavos); 
-    atualizarEstadoValor(); 
-    animarDigitacaoValor();
-  }
-});
+valorEl.addEventListener('focus', ()=>{ valorAux.focus(); valorEl.classList.add('ativo'); });
+valorAux.addEventListener('blur', ()=>{ valorEl.classList.remove('ativo'); });
 
 // ================================================================
 //  ENVIAR E RIPPLE EFFECT
@@ -488,7 +470,7 @@ $id('btn').addEventListener('click', function(e) {
 $id('btn').addEventListener('click', async ()=>{
   const data  = $id('data').value;
   const desc  = descVal.value.trim();
-  const valor = centavos/100;
+  const valor = centavos / 100;
 
   if(!data){ 
     toast('Escolha a data','err'); 
@@ -513,7 +495,8 @@ $id('btn').addEventListener('click', async ()=>{
 
   $id('btn').disabled=true; $id('btn').textContent='Enviando...';
   try{
-    await fetch(SCRIPT_URL,{method:'POST',redirect:'follow',
+    const r = await fetch(SCRIPT_URL, {
+      method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify({token:TOKEN,data:data,descricao:desc,valor:valor})
     });
@@ -522,12 +505,19 @@ $id('btn').addEventListener('click', async ()=>{
     limparDesc();
     centavos=0; valorEl.value='0,00'; valorEl.classList.remove('ativo');
     searchEl.focus();
-  }catch(err){
-    toast('Erro de conexão. Tente de novo.','err');
+  }catch(e){
+    toast('Erro de rede: '+e.message,'err');
   }finally{
     $id('btn').disabled=false; $id('btn').textContent='Adicionar lançamento';
   }
 });
+
+// toast
+const toast = (msg, tipo) => {
+  const t=$id('toast'); t.textContent=msg;
+  t.className='toast show '+(tipo||'');
+  setTimeout(()=>t.className='toast '+(tipo||''), 2800);
+};
 </script>
 </body>
 </html>
