@@ -14,70 +14,169 @@
   .wrap{max-width:440px;margin:0 auto}
   .head{display:flex;align-items:center;gap:10px;color:#fff;margin:6px 2px 16px}
   .logo{width:34px;height:34px;background:var(--verde);border-radius:9px;display:flex;
-        align-items:center;justify-content:center;font-weight:800;font-size:18px}
+        align-items:center;justify-content:center;font-weight:800;font-size:18px;
+        box-shadow:0 4px 12px rgba(22,130,60,0.4);
+        transition:transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        user-select:none;cursor:pointer}
+  .logo:hover, .logo.bounce {
+    animation: logoBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes logoBounce {
+    0% { transform: scale(1) rotate(0deg); }
+    30% { transform: scale(1.25) rotate(-10deg); }
+    60% { transform: scale(0.9) rotate(5deg); }
+    80% { transform: scale(1.1) rotate(-2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
   .head h1{font-size:19px;font-weight:600}
   .card{background:var(--card);border-radius:16px;padding:18px;
-        box-shadow:0 6px 22px rgba(0,0,0,.18)}
+        box-shadow:0 8px 28px rgba(0,0,0,.2);
+        animation: cardEntrance 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;}
+  @keyframes cardEntrance {
+    0% { opacity: 0; transform: translateY(18px) scale(0.97); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
   label{display:block;font-size:13px;font-weight:600;color:var(--txt2);margin:14px 2px 6px}
   label:first-child{margin-top:0}
   input[type=date]{width:100%;height:50px;border:1.5px solid var(--borda);border-radius:11px;
         padding:0 14px;font-size:17px;font-family:inherit;color:var(--txt);
-        background:#fff;outline:none;appearance:none}
-  input[type=date]:focus{border-color:var(--azul)}
+        background:#fff;outline:none;appearance:none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;}
+  input[type=date]:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(37,99,185,0.15)}
 
   /* ---- campo busca descricao ---- */
   .desc-wrap{position:relative}
   .desc-row{display:flex;width:100%}
   #descSearch{flex:1;min-width:0;height:50px;border:1.5px solid var(--borda);border-radius:11px 0 0 11px;
         border-right:none;padding:0 14px;font-size:17px;font-family:inherit;
-        color:var(--txt);background:#fff;outline:none;appearance:none}
-  #descSearch:focus{border-color:var(--azul)}
+        color:var(--txt);background:#fff;outline:none;appearance:none;
+        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;}
+  #descSearch:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(37,99,185,0.12)}
   #descSearch.ok{border-color:var(--verde);background:#F0FAF4}
   #descSearch.err{border-color:var(--vermelho);background:#FEF0F0}
   .desc-clear{width:46px;height:50px;border:1.5px solid var(--borda);border-left:none;
         border-radius:0 11px 11px 0;background:#F7F9FC;color:var(--txt2);font-size:20px;
         cursor:pointer;display:flex;align-items:center;justify-content:center;
-        flex-shrink:0;user-select:none;transition:background .2s,border-color .2s,color .2s}
+        flex-shrink:0;user-select:none;
+        transition:background .2s,border-color .2s,color .2s,transform .2s cubic-bezier(0.34, 1.56, 0.64, 1)}
+  .desc-clear:active{transform:scale(0.82) rotate(-20deg);}
   .desc-row.state-ok .desc-clear,#descClear.clear-ok{border-color:var(--verde) !important;background:#E6F7ED !important;color:var(--verde) !important}
   .desc-row.state-err .desc-clear,#descClear.clear-err{border-color:var(--vermelho) !important;background:#FEF0F0 !important;color:var(--vermelho) !important}
-  .desc-hint{font-size:11px;margin:2px 2px 0;min-height:0;height:14px;line-height:14px;font-weight:500;overflow:hidden}
+  .desc-hint{font-size:11px;margin:3px 2px 0;min-height:0;height:14px;line-height:14px;font-weight:500;overflow:hidden;transition:color 0.2s ease}
   .desc-hint.ok{color:var(--verde)} .desc-hint.err{color:var(--vermelho)} .desc-hint.info{color:var(--txt2)}
 
-  /* ---- dropdown: posicao fixed para nao tremer ao rolar ---- */
-  .drop{position:fixed;background:#fff;border:1.5px solid var(--azul);
-        border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18);
+  /* ---- dropdown suave e perfeitamente alinhado ---- */
+  .drop{position:absolute;top:52px;left:0;width:100%;background:#fff;border:1.5px solid var(--azul);
+        border-radius:12px;box-shadow:0 8px 28px rgba(22,53,122,.18);
         max-height:240px;overflow-y:auto;-webkit-overflow-scrolling:touch;
-        z-index:9999;display:none}
+        z-index:9999;display:none;box-sizing:border-box;}
   .drop.open{display:block}
+  .drop-spring{
+    animation: dropSmooth 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes dropSmooth {
+    0% { opacity: 0; transform: translateY(-6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
   .drop-item{padding:14px 16px;font-size:16px;border-bottom:1px solid #F0F3F8;
-        cursor:pointer;user-select:none;-webkit-user-select:none}
+        cursor:pointer;user-select:none;-webkit-user-select:none;
+        transition: background 0.15s ease, color 0.15s ease, padding-left 0.15s ease;}
   .drop-item:last-child{border-bottom:none}
-  .drop-item.active{background:var(--azul);color:#fff}
+  .drop-item:hover, .drop-item.active{background:#F0F6FF;color:var(--azul);padding-left:20px;}
+  .drop-item:active{background:var(--azul);color:#fff;}
   .drop-item em{font-style:normal;font-weight:700}
   .drop-empty{padding:16px;color:var(--txt2);font-size:14px;text-align:center}
 
-  /* ---- valor ---- */
+  /* ---- valor com animacao ao digitar (z-index garante RS visivel) ---- */
   .moeda{position:relative}
   .moeda span{position:absolute;left:14px;top:50%;transform:translateY(-50%);
-        color:var(--txt2);font-size:16px}
+        color:var(--txt2);font-size:16px;font-weight:600;
+        z-index:10;pointer-events:none;
+        transition:color 0.2s ease;}
   .moeda input{width:100%;height:50px;border:1.5px solid var(--borda);border-radius:11px;
         padding:0 14px 0 42px;font-size:22px;font-family:inherit;color:var(--txt);
         background:#fff;outline:none;appearance:none;letter-spacing:.5px;
-        transition:border-color .2s,background .2s,color .2s}
-  .moeda input:focus{border-color:var(--azul)}
+        position:relative;z-index:1;
+        transition:border-color .2s,background .2s,color .2s,box-shadow .2s,transform .15s ease}
+  .moeda input:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(37,99,185,0.15)}
   .moeda input.ativo{border-color:var(--azul);background:#F0F6FF}
 
-  button{width:100%;height:54px;border:none;border-radius:13px;background:var(--azul);
+  /* Keyframe bounce pop suave */
+  @keyframes bouncePop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  .bounce-pop {
+    animation: bouncePop 0.18s ease-out;
+  }
+
+  @keyframes symbolBounce {
+    0% { transform: translateY(-50%) scale(1); }
+    50% { transform: translateY(-50%) scale(1.22); color: var(--azul); }
+    100% { transform: translateY(-50%) scale(1); }
+  }
+  .symbol-bounce {
+    animation: symbolBounce 0.2s ease-out;
+  }
+
+  @keyframes clearSpin {
+    0% { transform: scale(1) rotate(0deg); }
+    50% { transform: scale(1.25) rotate(180deg); color: var(--vermelho); }
+    100% { transform: scale(1) rotate(360deg); }
+  }
+  .clear-spin {
+    animation: clearSpin 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Botao interativo */
+  button{width:100%;height:54px;border:none;border-radius:13px;
+         background:linear-gradient(135deg, var(--azul) 0%, var(--azul-esc) 100%);
          color:#fff;font-size:17px;font-weight:600;font-family:inherit;margin-top:18px;
-         cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
-  button:active{background:var(--azul-esc)}
-  button:disabled{opacity:.6}
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120px);
-         background:#222;color:#fff;padding:13px 22px;border-radius:30px;font-size:14.5px;
-         font-weight:500;transition:transform .3s;box-shadow:0 6px 20px rgba(0,0,0,.3);
-         max-width:88%;text-align:center;z-index:99999}
-  .toast.show{transform:translateX(-50%) translateY(0)}
+         cursor:pointer;position:relative;overflow:hidden;
+         box-shadow:0 4px 16px rgba(37,99,185,0.35);
+         transition:transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.18s ease, opacity 0.2s;
+         -webkit-tap-highlight-color:transparent}
+  button:hover{transform:translateY(-2px) scale(1.01);box-shadow:0 6px 20px rgba(37,99,185,0.45)}
+  button:active{transform:translateY(1px) scale(0.96);box-shadow:0 2px 8px rgba(37,99,185,0.3)}
+  button:disabled{opacity:.6;transform:none;box-shadow:none;cursor:not-allowed}
+
+  /* Ripple no clique do botao */
+  span.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    animation: rippleEffect 0.55s linear;
+    background-color: rgba(255, 255, 255, 0.35);
+    pointer-events: none;
+  }
+  @keyframes rippleEffect {
+    to { transform: scale(4); opacity: 0; }
+  }
+
+  /* Toast com bounce spring */
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120px) scale(0.85);
+         opacity:0;background:#222;color:#fff;padding:13px 22px;border-radius:30px;font-size:14.5px;
+         font-weight:500;box-shadow:0 8px 26px rgba(0,0,0,.3);
+         max-width:88%;text-align:center;z-index:99999;
+         pointer-events:none;
+         transition:transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;}
+  .toast.show{
+    transform:translateX(-50%) translateY(0) scale(1);
+    opacity:1;
+    animation: toastBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes toastBounce {
+    0% { transform: translateX(-50%) translateY(60px) scale(0.75); opacity: 0; }
+    65% { transform: translateX(-50%) translateY(-8px) scale(1.04); opacity: 1; }
+    85% { transform: translateX(-50%) translateY(2px) scale(0.98); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+  }
   .toast.ok{background:var(--verde)} .toast.err{background:var(--vermelho)}
+
   .hint{color:#AFC4F0;font-size:12px;text-align:center;margin-top:14px}
   .sync-info{color:#AFC4F0;font-size:11px;text-align:center;margin-top:4px}
 </style>
@@ -96,14 +195,14 @@
                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="desc-clear" id="descClear">&#x2715;</div>
       </div>
+      <div class="drop" id="drop"></div>
       <div class="desc-hint info" id="descHint">Digite para buscar</div>
     </div>
-    <div class="drop" id="drop"></div>
     <input type="hidden" id="descVal">
 
     <label>Valor</label>
     <div class="moeda">
-      <span>R$</span>
+      <span id="moedaSymbol">R$</span>
       <input type="text" id="valor" inputmode="numeric" placeholder="0,00" readonly>
     </div>
 
@@ -121,6 +220,20 @@ const TOKEN      = "3380";
 let LISTA = ["Acessório", "Ajuda de custo", "Almoço", "Aluguel", "Assinaturas", "Ações", "Besteiras", "Cabelo", "Café da manhã", "Casa", "Churrasco", "Combustivel", "Compra Mercado Livre", "Cursos", "Dividendos", "Dizimo", "Dízimo", "Eletrônicos", "Estacionamento", "Eventos", "Extorno", "Extra", "FII´s", "Facul", "Farmácia", "Fatura", "Hora Extra", "Jogos", "Juros", "Kart", "Lanche", "Lavação", "Luz", "Manut. Carro", "Mecânico", "Mercado", "Microsoft One Drive", "Outros", "Pag. Cartão crédito", "Pc", "Pedágio", "Perfume", "Peças carro", "Pizza", "Projetos", "RU", "Renda Extra", "Renda Fixa", "Restaurante", "Retiro", "Roupa", "Saldo Inicial", "Salário", "Saída", "Softwares", "Sorvete", "Tênis", "Venda", "Venda de ação", "Volêi", "Água"];
 
 const $id = id => document.getElementById(id);
+
+// ---- helper de animacao bounce/pop ----
+function triggerBounce(el, className = 'bounce-pop') {
+  if(!el) return;
+  el.classList.remove(className);
+  void el.offsetWidth; // forcar reflow
+  el.classList.add(className);
+}
+
+// Logo clicável com bounce
+const logoEl = document.querySelector('.logo');
+if(logoEl){
+  logoEl.addEventListener('click', () => triggerBounce(logoEl, 'bounce'));
+}
 
 // ---- toast ----
 const toast = (msg, tipo) => {
@@ -177,10 +290,9 @@ function hl(txt,q){
 }
 
 function posicionarDrop(){
-  const r=searchEl.getBoundingClientRect();
-  dropEl.style.left  = r.left+'px';
-  dropEl.style.top   = (r.bottom+4)+'px';
-  dropEl.style.width = (r.width+46)+'px'; // inclui botao X
+  dropEl.style.left = '';
+  dropEl.style.top = '';
+  dropEl.style.width = '';
 }
 
 function abrirDrop(q){
@@ -194,6 +306,9 @@ function abrirDrop(q){
     ).join('');
   }
   posicionarDrop();
+  if(!dropAberto){
+    triggerBounce(dropEl, 'drop-spring');
+  }
   dropEl.classList.add('open');
   dropAberto=true;
 }
@@ -204,6 +319,8 @@ function selecionarItem(v){
   searchEl.value=v; descVal.value=v;
   setDescState('ok');
   descHint.className='desc-hint ok'; descHint.textContent='✓ Cadastrada';
+  triggerBounce(searchEl, 'bounce-pop');
+  triggerBounce($id('descClear'), 'bounce-pop');
   fecharDrop();
 }
 
@@ -211,6 +328,7 @@ function limparDesc(){
   searchEl.value=''; descVal.value='';
   setDescState('');
   descHint.className='desc-hint info'; descHint.textContent='Digite para buscar';
+  triggerBounce($id('descClear'), 'clear-spin');
   fecharDrop(); searchEl.focus();
 }
 
@@ -279,6 +397,11 @@ document.addEventListener('touchstart', e=>{
 let centavos = 0;
 const valorEl = $id('valor');
 
+function animarDigitacaoValor() {
+  triggerBounce(valorEl, 'bounce-pop');
+  triggerBounce($id('moedaSymbol'), 'symbol-bounce');
+}
+
 function formatarValor(c){
   const s = String(c).padStart(3,'0');
   const reais = s.slice(0,-2).replace(/^0+/,'')||'0';
@@ -294,9 +417,11 @@ document.addEventListener('keydown', e=>{
   if(e.key>='0' && e.key<='9'){
     if(centavos < 9999999) centavos = centavos*10 + parseInt(e.key);
     valorEl.value = formatarValor(centavos);
+    animarDigitacaoValor();
   } else if(e.key==='Backspace'){
     centavos = Math.floor(centavos/10);
     valorEl.value = formatarValor(centavos);
+    animarDigitacaoValor();
   }
   e.preventDefault();
 });
@@ -309,42 +434,82 @@ document.body.appendChild(valorAux);
 function atualizarEstadoValor(){
   valorEl.classList.add('ativo');
 }
-valorEl.addEventListener('click',()=>{ centavos=0; valorEl.value='0,00'; valorAux.focus(); valorEl.classList.add('ativo'); });
+valorEl.addEventListener('click',()=>{ 
+  centavos=0; 
+  valorEl.value='0,00'; 
+  valorAux.focus(); 
+  valorEl.classList.add('ativo'); 
+  animarDigitacaoValor();
+});
 valorEl.addEventListener('focus',()=>{ valorAux.focus(); valorEl.classList.add('ativo'); });
 valorAux.addEventListener('blur',()=>{ valorEl.classList.remove('ativo'); });
 
 valorAux.addEventListener('input', e=>{
   // pega so os digitos digitados
   const digitos=(valorAux.value||'').replace(/\D/g,'');
-  for(const d of digitos){
-    if(centavos < 9999999) centavos = centavos*10 + parseInt(d);
+  if(digitos.length > 0){
+    for(const d of digitos){
+      if(centavos < 9999999) centavos = centavos*10 + parseInt(d);
+    }
+    valorEl.value=formatarValor(centavos);
+    atualizarEstadoValor();
+    animarDigitacaoValor();
   }
-  valorEl.value=formatarValor(centavos);
-  atualizarEstadoValor();
   valorAux.value='';
 });
 valorAux.addEventListener('keydown',e=>{
-  if(e.key==='Backspace'){ centavos=Math.floor(centavos/10); valorEl.value=formatarValor(centavos); atualizarEstadoValor(); }
+  if(e.key==='Backspace'){ 
+    centavos=Math.floor(centavos/10); 
+    valorEl.value=formatarValor(centavos); 
+    atualizarEstadoValor(); 
+    animarDigitacaoValor();
+  }
 });
 
 // ================================================================
-//  ENVIAR
+//  ENVIAR E RIPPLE EFFECT
 // ================================================================
+$id('btn').addEventListener('click', function(e) {
+  // Ripple
+  const btn = this;
+  const circle = document.createElement('span');
+  const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+  const radius = diameter / 2;
+  const rect = btn.getBoundingClientRect();
+  circle.style.width = circle.style.height = `${diameter}px`;
+  circle.style.left = `${e.clientX - rect.left - radius}px`;
+  circle.style.top = `${e.clientY - rect.top - radius}px`;
+  circle.classList.add('ripple');
+  const prevRipple = btn.querySelector('.ripple');
+  if (prevRipple) prevRipple.remove();
+  btn.appendChild(circle);
+});
+
 $id('btn').addEventListener('click', async ()=>{
   const data  = $id('data').value;
   const desc  = descVal.value.trim();
   const valor = centavos/100;
 
-  if(!data){ toast('Escolha a data','err'); return; }
+  if(!data){ 
+    toast('Escolha a data','err'); 
+    triggerBounce($id('data'), 'bounce-pop');
+    return; 
+  }
   if(!desc){
     if(searchEl.value.trim()){
       setDescState('err');
       descHint.className='desc-hint err';
       descHint.textContent='Selecione uma opção da lista';
     }
-    toast('Selecione uma descrição da lista','err'); return;
+    toast('Selecione uma descrição da lista','err'); 
+    triggerBounce(searchEl, 'bounce-pop');
+    return;
   }
-  if(valor<=0){ toast('Digite um valor válido','err'); return; }
+  if(valor<=0){ 
+    toast('Digite um valor válido','err'); 
+    animarDigitacaoValor();
+    return; 
+  }
 
   $id('btn').disabled=true; $id('btn').textContent='Enviando...';
   try{
@@ -353,6 +518,7 @@ $id('btn').addEventListener('click', async ()=>{
       body:JSON.stringify({token:TOKEN,data:data,descricao:desc,valor:valor})
     });
     toast('\u2713 Lançado: '+desc,'ok');
+    if(logoEl) triggerBounce(logoEl, 'bounce');
     limparDesc();
     centavos=0; valorEl.value='0,00'; valorEl.classList.remove('ativo');
     searchEl.focus();
